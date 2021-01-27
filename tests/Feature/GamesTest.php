@@ -42,8 +42,7 @@ class GamesTest extends TestCase
         Sanctum::actingAs($user);
 
         // Create game
-        $r = $this->postJson(route('games.store'));
-        $game = Game::findOrFail($r['id']);
+        $game = $user->games()->create();
 
         // Update the game data through the API
         $response = $this->patchJson(route('games.update', [$game]), [
@@ -73,15 +72,35 @@ class GamesTest extends TestCase
         $this->withoutExceptionHandling();
         Sanctum::actingAs(User::factory()->create());
 
-        User::factory()->has(Game::factory())->create();
+        $user = User::factory()->has(Game::factory())->create();
 
-        $game = Game::first();
+        $game = $user->games()->first();
 
         $response = $this->postJson(route('games.join'), ['game' => $game->id]);
 
         $response->assertStatus(Response::HTTP_OK);
         $response->assertJson([
             'result' => 'OK'
+        ]);
+    }
+
+    public function test_full_games_cannot_be_joined()
+    {
+        $this->withoutExceptionHandling();
+        Sanctum::actingAs(User::factory()->create());
+
+        $host = User::factory()->has(Game::factory())->create();
+
+        $game = $host->games()->first();
+
+        $game->users()->attach([(User::factory()->create())->id]);
+
+        $response = $this->postJson(route('games.join'), ['game' => $game->id]);
+
+        $response->assertStatus(Response::HTTP_BAD_REQUEST);
+        $response->assertJson([
+            'result' => 'ERROR',
+            'error' => 'Game Full'
         ]);
     }
 }
