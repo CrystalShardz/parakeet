@@ -8,7 +8,7 @@ use Tests\TestCase;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
-class UsersCanRegisterAndLogin extends TestCase
+class UsersCanRegisterAndLoginTest extends TestCase
 {
     use WithFaker;
 
