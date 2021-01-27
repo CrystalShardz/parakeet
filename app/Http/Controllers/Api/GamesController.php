@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\JoinGameRequest;
 use App\Models\Game;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -16,7 +17,11 @@ class GamesController extends Controller
      */
     public function index()
     {
-        //
+        $games = Game::all();
+
+        return response()->json([
+            'games' => $games
+        ]);
     }
 
     /**
@@ -77,5 +82,34 @@ class GamesController extends Controller
     public function destroy(Game $game)
     {
         //
+    }
+
+    /**
+     * Handle the join game request.
+     *
+     * @param JoinGameRequest $request
+     * @return JsonResponse
+     * @throws ModelNotFoundException
+     */
+    public function join(JoinGameRequest $request)
+    {
+        $data = $request->validated();
+
+        $game = Game::findOrFail($data['game']);
+
+        if ($game->isFull()) {
+            return response()->json([
+                'result' => 'ERROR',
+                'error' => 'Game Full',
+                'max_players' => $game->max_players,
+                'current_players' => $game->users->count()
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $game->users()->attach($request->user()->id);
+
+        return response()->json([
+            'result' => 'OK'
+        ]);
     }
 }

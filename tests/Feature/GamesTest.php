@@ -56,4 +56,32 @@ class GamesTest extends TestCase
             'result' => 'OK'
         ]);
     }
+
+    public function test_all_games_list_can_be_retrieved()
+    {
+        Sanctum::actingAs(User::factory()->create());
+
+        User::factory(5)->has(Game::factory()->count(2))->create();
+
+        $response = $this->getJson(route('games.index'));
+
+        $response->assertStatus(Response::HTTP_OK);
+    }
+
+    public function test_games_can_be_joined()
+    {
+        $this->withoutExceptionHandling();
+        Sanctum::actingAs(User::factory()->create());
+
+        User::factory()->has(Game::factory())->create();
+
+        $game = Game::first();
+
+        $response = $this->postJson(route('games.join'), ['game' => $game->id]);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJson([
+            'result' => 'OK'
+        ]);
+    }
 }

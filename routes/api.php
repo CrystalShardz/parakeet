@@ -19,6 +19,7 @@ Route::group(['namespace' => 'App\Http\Controllers\Api'], function () {
     Route::post('login', 'AuthController@login')->name('login');
 
     Route::group(['middleware' => 'auth:sanctum'], function () {
+        Route::post('games/join', 'GamesController@join')->name('games.join');
         Route::apiResource('games', 'GamesController');
     });
 });
