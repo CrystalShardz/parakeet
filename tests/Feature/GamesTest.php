@@ -2,12 +2,13 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Http\Response;
-use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
+use App\Models\Game;
+use App\Models\User;
+use Laravel\Sanctum\Sanctum;
+use Illuminate\Http\Response;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class GamesTest extends TestCase
 {
@@ -32,5 +33,27 @@ class GamesTest extends TestCase
     {
         $response = $this->postJson(route('games.store'));
         $response->assertStatus(Response::HTTP_UNAUTHORIZED);
+    }
+
+    public function test_games_data_can_be_updated()
+    {
+        $this->withoutExceptionHandling();
+        $user = User::factory()->create();
+        Sanctum::actingAs($user);
+
+        // Create game
+        $r = $this->postJson(route('games.store'));
+        $game = Game::findOrFail($r['id']);
+
+        // Update the game data through the API
+        $response = $this->patchJson(route('games.update', [$game]), [
+            'data' =>
+            json_encode(['the_message' => 'Hello World'])
+        ]);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJson([
+            'result' => 'OK'
+        ]);
     }
 }

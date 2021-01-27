@@ -10,7 +10,15 @@ class Game extends Model
 {
     use HasFactory;
 
-    protected $fillable = [];
+    protected $fillable = [
+        'data'
+    ];
+    protected $casts = [
+        'data' => 'array'
+    ];
+
+    public $keyType = 'string';
+    public $incrementing = false;
 
     public static function boot()
     {

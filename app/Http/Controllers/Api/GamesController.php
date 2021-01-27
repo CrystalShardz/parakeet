@@ -55,7 +55,17 @@ class GamesController extends Controller
      */
     public function update(Request $request, Game $game)
     {
-        //
+        $request->validate([
+            'data' => 'required|json'
+        ]);
+
+        $game->update([
+            'data' => json_decode($request->get('data'))
+        ]);
+
+        return response()->json([
+            'result' => 'OK'
+        ]);
     }
 
     /**
