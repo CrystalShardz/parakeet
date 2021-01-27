@@ -100,9 +100,7 @@ class GamesController extends Controller
         if ($game->isFull()) {
             return response()->json([
                 'result' => 'ERROR',
-                'error' => 'Game Full',
-                'max_players' => $game->max_players,
-                'current_players' => $game->users->count()
+                'error' => 'Game Full'
             ], Response::HTTP_BAD_REQUEST);
         }
 
