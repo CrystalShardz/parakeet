@@ -74,14 +74,20 @@ class GamesController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Leave a game. If this is the last player in the game, delete the game too
      *
      * @param  \App\Models\Game  $game
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Game $game)
+    public function destroy(Game $game, Request $request)
     {
-        //
+        $game->users()->detach($request->user()->id);
+
+        if($game->users->count() < 1) {
+            $game->delete();
+        }
+
+        return response('', Response::HTTP_OK);
     }
 
     /**

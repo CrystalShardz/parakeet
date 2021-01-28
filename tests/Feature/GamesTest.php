@@ -138,4 +138,57 @@ class GamesTest extends TestCase
             'seat' => 2
         ]);
     }
+
+    public function test_user_can_leave_a_game() {
+        $this->withoutExceptionHandling();
+        [$host, $user] = User::Factory()->count(2)->create();
+
+        $game = $host->games()->create([
+            'host_id' => $host->id
+        ]);
+        $game->users()->attach($user);
+
+        Sanctum::actingAs($user);
+        $response = $this->delete(route('games.destroy', [$game]));
+
+        $response->assertStatus(Response::HTTP_OK);
+        $this->assertEquals(1, $game->users()->count());
+    }
+
+    public function test_game_is_deleted_when_all_users_leave() {
+        $this->withoutExceptionHandling();
+        [$host, $user] = User::Factory()->count(2)->create();
+
+        $game = $host->games()->create([
+            'host_id' => $host->id
+        ]);
+        $game->users()->attach($user);
+
+        Sanctum::actingAs($user);
+        $response = $this->delete(route('games.destroy', [$game]));
+
+        Sanctum::actingAs($host);
+        $response = $this->delete(route('games.destroy', [$game]));
+
+        $response->assertStatus(Response::HTTP_OK);
+        $this->assertEquals(0, $host->games()->count());
+    }
+
+    public function test_host_is_reassigned_when_host_leaves() {
+        $this->withoutExceptionHandling();
+        [$host, $user] = User::Factory()->count(2)->create();
+
+        $game = $host->games()->create([
+            'host_id' => $host->id
+        ]);
+        $game->users()->attach($user);
+
+        Sanctum::actingAs($host);
+        $response = $this->delete(route('games.destroy', [$game]));
+
+        $response->assertStatus(200);
+        // refresh game object
+        $game->refresh();
+        $this->assertEquals($user->id, $game->host->id);
+    }
 }

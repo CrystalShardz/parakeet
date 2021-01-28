@@ -13,7 +13,8 @@ class Game extends Model
 
     protected $fillable = [
         'data',
-        'max_players'
+        'max_players',
+        'host_id'
     ];
     protected $casts = [
         'data' => 'array'
@@ -46,5 +47,13 @@ class Game extends Model
     public function isFull(): bool
     {
         return $this->users->count() >= $this->max_players;
+    }
+
+    public function setRandomHost() {
+        $host = $this->users()->inRandomOrder()->first();
+        if(null != $host) {
+            $this->host()->associate($host);
+            $this->save();
+        }
     }
 }
