@@ -7,7 +7,6 @@ use App\Models\Game;
 use App\Models\User;
 use Laravel\Sanctum\Sanctum;
 use Illuminate\Http\Response;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class GamesTest extends TestCase
