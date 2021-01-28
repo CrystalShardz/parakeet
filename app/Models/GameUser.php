@@ -22,5 +22,12 @@ class GameUser extends Pivot
                 $model->seat = $nextSeat;
             }
         });
+
+        static::deleted(function(GameUser $model) {
+            $game = Game::findOrFail($model->game_id);
+            if($game->host->id == $model->user_id) {
+                $game->setRandomHost();
+            }
+        });
     }
 }
