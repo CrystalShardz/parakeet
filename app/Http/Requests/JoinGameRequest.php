@@ -24,10 +24,16 @@ class JoinGameRequest extends FormRequest
      */
     public function rules()
     {
-        $game = Game::findOrFail($this->get('game'));
-        return [
-            'game' => 'required|exists:games,id',
-            'seat' => 'sometimes|numeric|min:1|max:' . $game->max_players
+        $rules = [
+            'game' => 'sometimes|nullable|exists:games,id'
         ];
+
+        $game = Game::find($this->get('game')) ?? null;
+
+        if(!is_null($game)) {
+            $rules['seat'] = 'sometimes|nullable|min:1|max:' . $game->max_players;
+        }
+
+        return $rules;
     }
 }

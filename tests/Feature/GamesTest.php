@@ -103,7 +103,8 @@ class GamesTest extends TestCase
         ]);
     }
 
-    public function test_user_can_pick_a_seat() {
+    public function test_user_can_pick_a_seat()
+    {
         $this->withoutExceptionHandling();
         $user = User::Factory()->create();
         Sanctum::actingAs($user);
@@ -122,7 +123,8 @@ class GamesTest extends TestCase
         ]);
     }
 
-    public function test_user_assigned_next_available_seat() {
+    public function test_user_assigned_next_available_seat()
+    {
         $this->withoutExceptionHandling();
         $user = User::Factory()->create();
         Sanctum::actingAs($user);
@@ -139,7 +141,8 @@ class GamesTest extends TestCase
         ]);
     }
 
-    public function test_user_can_leave_a_game() {
+    public function test_user_can_leave_a_game()
+    {
         $this->withoutExceptionHandling();
         [$host, $user] = User::Factory()->count(2)->create();
 
@@ -155,7 +158,8 @@ class GamesTest extends TestCase
         $this->assertEquals(1, $game->users()->count());
     }
 
-    public function test_game_is_deleted_when_all_users_leave() {
+    public function test_game_is_deleted_when_all_users_leave()
+    {
         $this->withoutExceptionHandling();
         [$host, $user] = User::Factory()->count(2)->create();
 
@@ -174,7 +178,8 @@ class GamesTest extends TestCase
         $this->assertEquals(0, $host->games()->count());
     }
 
-    public function test_host_is_reassigned_when_host_leaves() {
+    public function test_host_is_reassigned_when_host_leaves()
+    {
         $this->withoutExceptionHandling();
         [$host, $user] = User::Factory()->count(2)->create();
 
@@ -190,5 +195,40 @@ class GamesTest extends TestCase
         // refresh game object
         $game->refresh();
         $this->assertEquals($user->id, $game->host->id);
+    }
+
+    public function test_matchmaking_creates_game_when_no_games_exist()
+    {
+        $this->withoutExceptionHandling();
+        $user = User::Factory()->create();
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson(route('games.join'));
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJson([
+            'result' => 'OK',
+            'seat' => 1,
+            'game' => $user->games()->first()->id
+        ]);
+    }
+
+    public function test_matchmaking_joins_existing_game()
+    {
+        $this->withoutExceptionHandling();
+        [$host, $client] = User::factory()->count(2)->create();
+
+        $game = $host->games()->create(['host_id' => $host->id]);
+
+        Sanctum::actingAs($client);
+
+        $response = $this->postJson(route('games.join'));
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJson([
+            'result' => 'OK',
+            'seat' => 2,
+            'game' => $game->id
+        ]);
     }
 }

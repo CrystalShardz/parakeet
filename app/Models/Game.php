@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Exceptions\HostNotSetException;
 use App\Observers\GameObserver;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -29,6 +30,23 @@ class Game extends Model
         parent::observe(GameObserver::class);
     }
 
+    public static function firstAvailableOrCreate(array $attributes = []): Game
+    {
+        if (!array_key_exists('host_id', $attributes) || is_null($attributes['host_id'])) {
+            throw new HostNotSetException();
+        }
+
+        $game = Game::has('users', '<', 'game.max_players')->orderBy('created_at', 'desc')->first();
+
+        if (is_null($game)) {
+            // no games found create one
+            $game = Game::create($attributes);
+            $game->users()->attach($attributes['host_id']);
+        }
+
+        return $game;
+    }
+
     public function users()
     {
         return $this->belongsToMany(User::class)->using(GameUser::class);
@@ -49,9 +67,10 @@ class Game extends Model
         return $this->users->count() >= $this->max_players;
     }
 
-    public function setRandomHost() {
+    public function setRandomHost()
+    {
         $host = $this->users()->inRandomOrder()->first();
-        if(null != $host) {
+        if (null != $host) {
             $this->host()->associate($host);
             $this->save();
         }

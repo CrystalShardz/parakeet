@@ -83,7 +83,7 @@ class GamesController extends Controller
     {
         $game->users()->detach($request->user()->id);
 
-        if($game->users->count() < 1) {
+        if ($game->users->count() < 1) {
             $game->delete();
         }
 
@@ -101,20 +101,33 @@ class GamesController extends Controller
     {
         $data = $request->validated();
 
-        $game = Game::findOrFail($data['game']);
+        if (array_key_exists('game', $data)) {
+            // Join specific game
+            $game = Game::findOrFail($data['game']);
 
-        if ($game->isFull()) {
-            return response()->json([
-                'result' => 'ERROR',
-                'error' => 'Game Full'
-            ], Response::HTTP_BAD_REQUEST);
+            if ($game->isFull()) {
+                return response()->json([
+                    'result' => 'ERROR',
+                    'error' => 'Game Full'
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            $game->users()->attach($request->user()->id, ['seat' => $data['seat'] ?? null]);
+        } else {
+            // Matchmaking request
+            $game = Game::firstAvailableOrCreate([
+                'host_id' => $request->user()->id
+            ]);
+
+            $game->users()->attach($request->user()->id);
         }
 
-        $game->users()->attach($request->user()->id, ['seat' => $data['seat'] ?? null]);
+        $gameUser = $game->users()->where('id', '=', $request->user()->id)->withPivot(['seat'])->first();
 
         return response()->json([
             'result' => 'OK',
-            'seat' => $game->users()->wherePivot('user_id', '=', $request->user()->id)->withPivot(['seat'])->first()->pivot->seat
+            'seat' => $gameUser->pivot->seat,
+            'game' => $game->id
         ]);
     }
 }
