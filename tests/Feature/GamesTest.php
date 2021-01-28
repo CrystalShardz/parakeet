@@ -103,4 +103,40 @@ class GamesTest extends TestCase
             'error' => 'Game Full'
         ]);
     }
+
+    public function test_user_can_pick_a_seat() {
+        $this->withoutExceptionHandling();
+        $user = User::Factory()->create();
+        Sanctum::actingAs($user);
+
+        $host = User::factory()->has(Game::Factory())->create();
+        $game = $host->games()->first();
+        $game->update(['max_players' => 5]);
+
+        // Send join request with a seat number as form data
+        $response = $this->postJson(route('games.join'), ['game' => $game->id, 'seat' => 5]);
+
+        $response->assertStatus(Response::HTTP_OK);
+        $response->assertJson([
+            'result' => 'OK',
+            'seat' => 5
+        ]);
+    }
+
+    public function test_user_assigned_next_available_seat() {
+        $this->withoutExceptionHandling();
+        $user = User::Factory()->create();
+        Sanctum::actingAs($user);
+
+        $host = User::factory()->has(Game::factory())->create();
+        $game = $host->games()->first();
+        $game->update(['max_players' => 5]);
+
+        $response = $this->postJson(route('games.join'), ['game' => $game->id]);
+
+        $response->assertJson([
+            'result' => 'OK',
+            'seat' => 2
+        ]);
+    }
 }

@@ -15,6 +15,7 @@ class CreateGamesUsersTable extends Migration
     {
         Schema::create('game_user', function (Blueprint $table) {
             $table->uuid('game_id');
+            $table->integer('seat');
             $table->foreignId('user_id');
         });
     }
