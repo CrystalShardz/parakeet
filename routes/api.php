@@ -18,7 +18,8 @@ Route::group(['namespace' => 'App\Http\Controllers\Api'], function () {
     Route::post('register', 'AuthController@register')->name('register');
     Route::post('login', 'AuthController@login')->name('login');
 
-    Route::group(['middleware' => 'sanctum'], function () {
-        // Protected routes go here
+    Route::group(['middleware' => 'auth:sanctum'], function () {
+        Route::post('games/join', 'GamesController@join')->name('games.join');
+        Route::apiResource('games', 'GamesController');
     });
 });
