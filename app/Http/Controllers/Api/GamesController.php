@@ -104,10 +104,11 @@ class GamesController extends Controller
             ], Response::HTTP_BAD_REQUEST);
         }
 
-        $game->users()->attach($request->user()->id);
+        $game->users()->attach($request->user()->id, ['seat' => $data['seat'] ?? null]);
 
         return response()->json([
-            'result' => 'OK'
+            'result' => 'OK',
+            'seat' => $game->users()->wherePivot('user_id', '=', $request->user()->id)->withPivot(['seat'])->first()->pivot->seat
         ]);
     }
 }
