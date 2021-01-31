@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\JoinGameRequest;
+use App\Http\Resources\GameCollection;
+use App\Http\Resources\GameResource;
 use App\Models\Game;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -19,9 +21,7 @@ class GamesController extends Controller
     {
         $games = Game::all();
 
-        return response()->json([
-            'games' => $games
-        ]);
+        return new GameCollection($games);
     }
 
     /**
